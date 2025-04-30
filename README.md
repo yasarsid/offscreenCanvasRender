@@ -1,15 +1,24 @@
 # Canvas Rendering Performance Demo
 
+_Last Updated: April 2025_
+
 ## Overview
 This project demonstrates the performance differences between rendering on the main thread versus using Web Workers with OffscreenCanvas. It creates a grid-like spreadsheet UI with text in each cell, similar to Excel, and provides options to compare rendering methods.
 
 ## Features
 
 - **Dynamic Canvas Creation**: Adjust the number of canvas elements (minimum 6) to test scaling performance.
+- **Configurable Worker Pool**: Change the number of Web Workers (1-16) to optimize for different hardware.
 - **Main Thread Rendering**: Render grids directly on the main thread.
 - **Web Worker Rendering**: Render using Web Workers with OffscreenCanvas to avoid blocking the main thread.
 - **Performance Metrics**: Display render times for both synchronous and worker-based approaches.
-- **Worker Pooling**: Limit the number of workers (4) and cycle rendering through them for optimal resource usage.
+- **Worker Pooling**: Configure the number of workers and cycle rendering through them for optimal resource usage.
+
+## Recent Updates
+
+- **Worker Count Synchronization**: When updating worker count, canvas count is automatically synchronized
+- **Code Optimizations**: Improved memory management and worker lifecycle handling
+- **Updated Browser Compatibility**: Verified support with latest browser versions as of April 2025
 
 ## Project Structure
 
@@ -19,6 +28,7 @@ This project demonstrates the performance differences between rendering on the m
 - **offscreen.js**: Manages Web Workers and coordinates offscreen canvas rendering.
 - **offscreenWorker.js**: The Web Worker implementation that receives and renders to OffscreenCanvas.
 - **index.js**: Placeholder file (previously used for FPS tracking).
+- **server.js**: Node.js/Express server for serving the application.
 
 ## How It Works
 
@@ -34,7 +44,7 @@ When you click "Render Grids," the application:
 When you click "Render with Web Worker," the application:
 1. Disables the button to prevent multiple clicks
 2. Starts timing the operation
-3. Distributes rendering tasks among a pool of 4 workers
+3. Distributes rendering tasks among your configured pool of workers (default: 2)
 4. Each worker renders to an OffscreenCanvas and returns the result as an ImageBitmap
 5. The main thread draws these ImageBitmaps onto the visible canvases
 6. Measures and displays the total render time
@@ -79,9 +89,28 @@ To identify bottlenecks:
 
 ## Running the Project
 
-### Local Development Server
+### Node.js Server (Recommended)
 
-This project requires running on a web server (not directly from file:// URLs) for proper Web Worker functionality. You can use Python's built-in HTTP server:
+This project includes a Node.js Express server for easy deployment and testing:
+
+1. Make sure you have [Node.js](https://nodejs.org/) installed
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Start the server:
+   ```
+   npm start
+   ```
+   Or for development with auto-restart:
+   ```
+   npm run dev
+   ```
+4. Open your browser and navigate to: `http://localhost:3002`
+
+### Alternative: Python Development Server
+
+You can also use Python's built-in HTTP server:
 
 #### Using Python 3:
 ```
@@ -100,9 +129,10 @@ Then open your browser and navigate to: `http://localhost:8000`
 ### Usage Instructions
 1. Once the server is running, open the URL in a modern browser that supports OffscreenCanvas
 2. Use the number input and "Update Canvas Count" button to adjust the number of canvases
-3. Click "Render Grids" to test main thread rendering performance
-4. Click "Render with Web Worker" to test worker-based rendering performance
-5. Compare the render times displayed in the top-right corner
+3. Use the number input and "Update Worker Count" button to adjust the number of web workers (1-16)
+4. Click "Render Grids" to test main thread rendering performance
+5. Click "Render with Web Worker" to test worker-based rendering performance
+6. Compare the render times displayed in the top-right corner
 
 ## Browser Support
 
@@ -112,4 +142,10 @@ This demo requires modern browser features including:
 - transferControlToOffscreen()
 - ImageBitmap
 
-Most recent versions of Chrome, Edge, and Firefox support these features.
+As of April 2025, the following browsers fully support these features:
+- Chrome 100+
+- Edge 100+
+- Firefox 97+
+- Safari 16.4+
+
+Older browser versions may have partial or no support for OffscreenCanvas.

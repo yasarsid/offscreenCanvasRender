@@ -4,16 +4,64 @@
  */
 
 // Caches and state variables
-const MAX_WORKERS = 2;   // Maximum number of workers
+const DEFAULT_WORKERS = 2;   // Default number of workers
+let MAX_WORKERS = DEFAULT_WORKERS;   // Maximum number of workers (configurable)
 const workers = [];      // Pool of reusable workers
 const canvasToWorker = new Map(); // Maps canvas IDs to workers
 let completedRenders = 0;      // Track completed renders
 let renderStartTime = 0;       // Timestamp for render start
 
-// Initialize worker pool on page load
-for (let i = 0; i < MAX_WORKERS; i++) {
-    workers.push(new Worker('offscreenWorker.js'));
+// Function to initialize worker pool
+function initializeWorkers(count) {
+    // Clear existing workers if any
+    while (workers.length > 0) {
+        const worker = workers.pop();
+        worker.terminate();
+    }
+    
+    // Create new workers
+    for (let i = 0; i < count; i++) {
+        workers.push(new Worker('offscreenWorker.js'));
+    }
+    
+    console.log(`Worker pool initialized with ${count} workers`);
 }
+
+// Initialize worker pool on page load with default count
+initializeWorkers(MAX_WORKERS);
+
+// Setup worker count update button handler
+document.getElementById('updateWorkerCount').addEventListener('click', () => {
+    const workerCountInput = document.getElementById('workerCount');
+    let newWorkerCount = parseInt(workerCountInput.value);
+    
+    // Validate worker count (minimum 1, maximum 16)
+    if (isNaN(newWorkerCount) || newWorkerCount < 1) {
+        newWorkerCount = 1;
+        workerCountInput.value = '1';
+    } else if (newWorkerCount > 16) {
+        newWorkerCount = 16;
+        workerCountInput.value = '16';
+    }
+    
+    // Update worker count and reinitialize pool
+    MAX_WORKERS = newWorkerCount;
+    initializeWorkers(MAX_WORKERS);
+    
+    // Reset canvas-to-worker mappings since workers are new
+    canvasToWorker.clear();
+    
+    // Reset any data-offscreen-transferred attributes on canvases
+    canvasIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            canvas.removeAttribute('data-offscreen-transferred');
+        }
+    });
+    
+    // Call updateCanvasCount to ensure canvas count matches
+    updateCanvasCount();
+});
 
 /**
  * Event handler for the worker render button
